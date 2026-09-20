@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Freedom Bank — карта в 3D</title>
+<meta name="description" content="Концепт 3D-лендинга Freedom Bank: карта в четырёх дизайнах, которую можно рассмотреть со всех сторон.">
+<script>
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('fb-theme'); } catch (e) {}
+  document.documentElement.setAttribute('data-theme', (t === 'light' || t === 'dark') ? t : 'dark');
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ---------- Theme tokens (light is the base, dark is applied via media query or the switch) ---------- */
+:root{
+  --bg:#eef6f0; --ink:#08210f; --muted:rgba(8,33,15,.68);
+  --accent:#0b7a36; --btn-bg:#0b7a36; --btn-fg:#ffffff;
+  --line:rgba(8,50,24,.22); --panel:rgba(255,255,255,.62); --chip:rgba(8,50,24,.07);
+  --blob:#3fd47c; --blob-op:.8; --grain-op:.16; --nav-bg:rgba(238,246,240,.65);
+  --tee:#1fbf55;
+  --sh:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@supports (height:100dvh){
+  :root{ --sh:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); }
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#020805; --ink:#eefaf1; --muted:rgba(214,240,224,.7);
+    --accent:#3ddc6e; --btn-bg:#3ddc6e; --btn-fg:#03140a;
+    --line:rgba(170,255,200,.2); --panel:rgba(2,10,6,.62); --chip:rgba(255,255,255,.07);
+    --blob:#19b850; --blob-op:.95; --grain-op:.3; --nav-bg:rgba(2,8,5,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#020805; --ink:#eefaf1; --muted:rgba(214,240,224,.7);
+  --accent:#3ddc6e; --btn-bg:#3ddc6e; --btn-fg:#03140a;
+  --line:rgba(170,255,200,.2); --panel:rgba(2,10,6,.62); --chip:rgba(255,255,255,.07);
+  --blob:#19b850; --blob-op:.95; --grain-op:.3; --nav-bg:rgba(2,8,5,.55);
+}
+html{ background:var(--bg); scroll-padding-top:env(safe-area-inset-top,0px); scroll-behavior:smooth; }
+:root[data-theme="dark"]{ color-scheme:dark; }
+:root[data-theme="light"]{ color-scheme:light; }
+*,*::before,*::after{ box-sizing:border-box; }
+body{
+  margin:0; background:transparent; color:var(--ink);
+  font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,p{ margin:0; }
+a{ color:inherit; }
+:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; border-radius:4px; }
+
+/* ---------- Backdrop: grid, blurred green light, film grain ---------- */
+#fx{ position:fixed; inset:0; z-index:-1; overflow:hidden; background:var(--bg); transition:background .4s ease; }
+#fx .grid{
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(90deg, var(--line) 1px, transparent 1px),
+    linear-gradient(180deg, var(--line) 1px, transparent 1px);
+  background-size:22.2vw 26.7vh; background-position:5.7vw 9.9vh;
+}
+#fx .blob{ position:absolute; border-radius:50%; background:var(--blob); opacity:var(--blob-op); filter:blur(64px); will-change:transform; }
+#fx .b1{ width:max(26vw,150px); height:max(26vw,150px); left:calc(max(26vw,150px) / -2); top:calc(23vh - max(26vw,150px) / 2); }
+#fx .b2{ width:max(32vw,190px); height:max(32vw,190px); right:calc(max(32vw,190px) / -2); top:calc(66vh - max(32vw,190px) / 2); }
+.grain{
+  position:fixed; inset:0; z-index:40; pointer-events:none; opacity:var(--grain-op); mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Navigation ---------- */
+.nav{
+  position:fixed; top:0; left:0; right:0; z-index:30;
+  display:flex; align-items:center; justify-content:space-between; gap:20px;
+  padding:calc(12px + env(safe-area-inset-top,0px)) clamp(16px,4vw,44px) 12px;
+}
+.mark{ font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:800; font-size:.95rem; letter-spacing:-.01em; text-decoration:none; color:var(--ink); white-space:nowrap; }
+.mark b{ color:var(--accent); font-weight:800; }
+.nav ul{ display:flex; gap:26px; list-style:none; margin:0; padding:0; }
+.nav ul a{ text-decoration:none; font-weight:600; font-size:.93rem; color:var(--muted); }
+.nav ul a:hover{ color:var(--ink); }
+.ctl{ display:flex; align-items:center; gap:10px; }
+.lang{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:3px; background:var(--nav-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+.lang button{ border:0; background:transparent; color:var(--ink); font:inherit; font-weight:700; font-size:.8rem; padding:.42em .8em; border-radius:999px; cursor:pointer; }
+.lang button[aria-pressed="true"]{ background:var(--btn-bg); color:var(--btn-fg); }
+.theme{ width:38px; height:38px; border-radius:50%; border:1px solid var(--line); background:var(--nav-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:var(--ink); cursor:pointer; display:grid; place-items:center; padding:0; }
+.theme:hover{ border-color:var(--accent); }
+.theme svg{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+:root[data-theme="dark"] .i-moon{ display:none; }
+:root[data-theme="light"] .i-sun{ display:none; }
+.nav .pill{ text-decoration:none; font-weight:700; font-size:.88rem; padding:.6em 1.1em; border-radius:999px; border:1px solid var(--line); background:var(--nav-bg); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); white-space:nowrap; }
+.nav .pill:hover{ border-color:var(--accent); }
+
+/* ---------- 3D canvas (one renderer, several viewports) ---------- */
+#gl{ position:fixed; top:0; left:0; width:100%; height:100%; z-index:5; pointer-events:none; opacity:0; transition:opacity .9s ease; }
+#gl.ready{ opacity:1; }
+
+/* ---------- Journey: hero + scroll story ---------- */
+#journey{ position:relative; height:calc(var(--sh) * 5); }
+.stage{ position:sticky; top:env(safe-area-inset-top,0px); height:var(--sh); z-index:1; overflow:hidden; }
+.hero-title{
+  position:absolute; left:0; right:0; top:46%; transform:translateY(-50%);
+  text-align:center; color:var(--ink);
+  font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:800;
+  font-size:clamp(2.6rem,11.5vw,11rem); line-height:.9; letter-spacing:-.035em;
+}
+.hero-title span{ display:block; }
+.hero-title span:last-child{ color:var(--accent); }
+.layer{ position:sticky; top:env(safe-area-inset-top,0px); height:var(--sh); margin-top:calc(var(--sh) * -1); z-index:10; pointer-events:none; }
+.hero-copy{ position:absolute; left:clamp(20px,5vw,72px); bottom:clamp(28px,8vh,88px); max-width:min(400px,42vw); }
+.hero-copy p{ font-size:1.05rem; color:var(--muted); margin-bottom:22px; }
+.btn{
+  pointer-events:auto; display:inline-flex; align-items:center; justify-content:center;
+  padding:1em 1.8em; border-radius:999px; text-decoration:none; font-weight:700; font-size:1rem;
+  background:var(--btn-bg); color:var(--btn-fg); border:0; cursor:pointer;
+  box-shadow:0 18px 44px -16px var(--btn-bg); transition:transform .25s ease, box-shadow .25s ease;
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 24px 54px -16px var(--btn-bg); }
+.scroll-hint{ position:absolute; right:clamp(20px,5vw,72px); bottom:clamp(28px,8vh,88px); font-size:.9rem; color:var(--muted); writing-mode:vertical-rl; transform:rotate(180deg); }
+.steps{ position:absolute; inset:0; }
+.step{ position:absolute; left:clamp(20px,5vw,72px); top:0; bottom:0; width:min(420px,34vw); display:flex; flex-direction:column; justify-content:center; gap:14px; opacity:0; visibility:hidden; }
+.step .tag{ font-weight:700; font-size:.95rem; color:var(--accent); }
+.step h2{ font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:700; font-size:clamp(1.6rem,3.1vw,2.8rem); line-height:1.08; letter-spacing:-.03em; }
+.step p{ color:var(--muted); max-width:38ch; }
+.prog{ position:absolute; left:clamp(20px,5vw,72px); bottom:clamp(28px,7vh,72px); width:150px; height:2px; background:var(--line); opacity:0; visibility:hidden; }
+.prog i{ display:block; height:100%; background:var(--accent); transform-origin:0 50%; transform:scaleX(0); }
+
+/* ---------- Sections ---------- */
+.wrap{ max-width:1240px; margin:0 auto; padding:clamp(72px,11vw,150px) clamp(20px,5vw,72px); }
+.wrap.tight{ padding-top:0; }
+.kicker{ font-weight:700; font-size:.95rem; color:var(--accent); margin-bottom:14px; }
+h2.big{ font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:700; font-size:clamp(1.8rem,4.2vw,3.5rem); line-height:1.05; letter-spacing:-.035em; max-width:17ch; }
+.ph{ display:inline-block; padding:.05em .55em; border:1px dashed var(--line); border-radius:4px; background:var(--chip); font-size:.88em; font-weight:600; color:var(--muted); }
+
+.facts{ display:grid; grid-template-columns:repeat(4,1fr); margin-top:clamp(40px,6vw,72px); border-top:1px solid var(--accent); background:var(--panel); }
+.fact{ padding:26px 26px 22px; }
+.fact + .fact{ border-left:1px solid var(--line); }
+.fact h3{ font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:700; font-size:1.05rem; letter-spacing:-.02em; line-height:1.18; margin-bottom:12px; }
+.fact p{ color:var(--muted); font-size:.98rem; }
+
+.designs{ display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:clamp(28px,5vw,80px); align-items:center; }
+.designs p.lead{ color:var(--muted); margin:18px 0 30px; max-width:38ch; }
+.ctl-label{ font-weight:700; font-size:.9rem; color:var(--muted); margin-bottom:12px; }
+.swatches{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:26px; }
+.sw{ width:46px; height:72px; border-radius:9px; border:0; cursor:pointer; padding:0; box-shadow:inset 0 0 0 1px rgba(255,255,255,.28), 0 10px 22px -12px rgba(0,0,0,.6); outline:2px solid transparent; outline-offset:4px; transition:transform .2s ease, outline-color .2s ease; }
+.sw:hover{ transform:translateY(-3px); }
+.sw[aria-checked="true"]{ outline-color:var(--ink); }
+.sw:focus-visible{ outline:3px solid var(--accent); }
+.seg{ display:inline-flex; border:1px solid var(--line); border-radius:999px; padding:4px; background:var(--panel); }
+.seg button{ border:0; background:transparent; color:var(--ink); font:inherit; font-weight:700; font-size:.95rem; padding:.6em 1.3em; border-radius:999px; cursor:pointer; transition:background .25s ease, color .25s ease; }
+.seg button[aria-checked="true"]{ background:var(--btn-bg); color:var(--btn-fg); }
+.cname{ margin-top:26px; font-family:'Unbounded','Manrope',system-ui,sans-serif; font-weight:700; font-size:1.25rem; letter-spacing:-.02em; min-height:1.6em; }
+.view{
+  position:relative; overflow:hidden; border:1px solid var(--line);
+  background:var(--panel);
+  background:radial-gradient(60% 55% at 50% 100%, color-mix(in srgb, var(--blob) 38%, transparent) 0%, transparent 72%), var(--panel);
+}
+#designView{ height:min(72vh,640px); min-height:420px; cursor:grab; touch-action:pan-y; }
+#designView.drag{ cursor:grabbing; }
+#designView .hint{ position:absolute; left:20px; bottom:16px; font-size:.85rem; color:var(--muted); }
+
+.specs{ margin:clamp(36px,5vw,64px) 0 0; display:grid; grid-template-columns:1fr 1fr; column-gap:clamp(24px,5vw,80px); }
+.spec{ display:flex; justify-content:space-between; gap:24px; padding:18px 0; border-bottom:1px solid var(--line); }
+.spec dt{ color:var(--muted); }
+.spec dd{ margin:0; font-weight:700; text-align:right; }
+
+.cta{ text-align:center; padding-top:0; }
+#ctaView{ width:min(820px,100%); height:min(46vh,440px); min-height:300px; margin:0 auto clamp(28px,4vw,48px); }
+.cta h2.big{ margin:0 auto 28px; max-width:14ch; }
+.cta .note{ margin-top:18px; color:var(--muted); font-size:.95rem; }
+footer{ border-top:1px solid var(--line); background:var(--panel); padding:26px clamp(20px,5vw,72px) 34px; color:var(--muted); font-size:.85rem; text-align:center; }
+
+/* WebGL fallback */
+.fb{ display:none; position:absolute; left:0; right:0; top:0; bottom:0; margin:auto; width:min(38%,240px); height:auto; fill:var(--tee); filter:drop-shadow(0 0 40px var(--blob)); }
+.no-webgl .fb{ display:block; }
+.no-webgl #gl{ display:none; }
+.no-gsap .step{ position:relative; opacity:1; visibility:visible; width:auto; padding:20px; }
+
+@media (max-width:900px){
+  .facts{ grid-template-columns:1fr; }
+  .fact + .fact{ border-left:0; border-top:1px solid var(--line); }
+  .designs{ grid-template-columns:1fr; }
+  .specs{ grid-template-columns:1fr; }
+  #fx .grid{ background-size:44vw 22vh; background-position:8vw 8vh; }
+}
+@media (max-width:800px){
+  .nav ul{ display:none; }
+  .hero-title{ font-size:clamp(2.4rem,14.5vw,6rem); top:42%; }
+  .hero-copy{ left:20px; right:20px; max-width:none; bottom:clamp(20px,4vh,40px); text-align:center; }
+  .hero-copy p{ font-size:1rem; margin-bottom:16px; }
+  .scroll-hint{ display:none; }
+  .step{ left:20px; right:20px; width:auto; top:auto; bottom:clamp(44px,8vh,80px); justify-content:flex-end; }
+  .step h2{ font-size:clamp(1.4rem,6.6vw,1.9rem); }
+  .prog{ left:20px; bottom:clamp(20px,4vh,36px); }
+}
+@media (max-width:640px){ .nav .pill{ display:none; } }
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior:auto; }
+  .btn, .sw, .seg button, #gl, #fx{ transition:none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs><rect id="cardshape" x="8" y="6" width="104" height="160" rx="14"/></defs>
+</svg>
+
+<div id="fx" aria-hidden="true"><div class="grid"></div><div class="blob b1"></div><div class="blob b2"></div></div>
+<div class="grain" aria-hidden="true"></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="mark" href="#journey" aria-label="Freedom Bank"><b>F</b>REEDOM BANK</a>
+  <ul>
+    <li><a href="#details" data-i18n="nav_details">Возможности</a></li>
+    <li><a href="#designs" data-i18n="nav_designs">Дизайны</a></li>
+    <li><a href="#specs" data-i18n="nav_specs">Характеристики</a></li>
+  </ul>
+  <div class="ctl">
+    <div class="lang" role="group" data-i18n-aria="aria_lang" aria-label="Язык">
+      <button type="button" data-lang="ru" aria-pressed="true">RU</button>
+      <button type="button" data-lang="kz" aria-pressed="false">KZ</button>
+    </div>
+    <button type="button" class="theme" id="themeBtn" data-i18n-aria="aria_theme" aria-label="Переключить тему">
+      <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <a class="pill" href="#designs" data-i18n="nav_cta">Выбрать дизайн</a>
+  </div>
+</header>
+
+<main>
+  <section id="journey" data-i18n-aria="aria_journey" aria-label="Карта Freedom Bank">
+    <div class="stage" id="stage">
+      <h1 class="hero-title" aria-label="Freedom Bank"><span>FREEDOM</span><span>BANK</span></h1>
+      <svg class="fb" viewBox="0 0 120 172" aria-hidden="true"><use href="#cardshape"/></svg>
+    </div>
+
+    <div class="layer">
+      <div class="hero-copy">
+        <p data-i18n="hero_p"></p>
+        <a class="btn" href="#designs" data-i18n="nav_cta"></a>
+      </div>
+      <div class="scroll-hint" data-i18n="scroll"></div>
+
+      <div class="steps">
+        <article class="step">
+          <p class="tag" data-i18n="s1_tag"></p>
+          <h2 data-i18n="s1_h"></h2>
+          <p data-i18n="s1_p"></p>
+        </article>
+        <article class="step">
+          <p class="tag" data-i18n="s2_tag"></p>
+          <h2 data-i18n="s2_h"></h2>
+          <p data-i18n="s2_p"></p>
+        </article>
+        <article class="step">
+          <p class="tag" data-i18n="s3_tag"></p>
+          <h2 data-i18n="s3_h"></h2>
+          <p data-i18n="s3_p"></p>
+        </article>
+        <div class="prog" aria-hidden="true"><i></i></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="details" class="wrap" aria-labelledby="details-h">
+    <p class="kicker" data-i18n="d_kicker"></p>
+    <h2 class="big" id="details-h" data-i18n="d_h"></h2>
+    <div class="facts">
+      <div class="fact"><h3 data-i18n="f1_h"></h3><p data-i18n="f1_p"></p></div>
+      <div class="fact"><h3 data-i18n="f2_h"></h3><p data-i18n="f2_p"></p></div>
+      <div class="fact"><h3 data-i18n="f3_h"></h3><p data-i18n="f3_p"></p></div>
+      <div class="fact"><h3 data-i18n="f4_h"></h3><p data-i18n="f4_p"></p></div>
+    </div>
+  </section>
+
+  <section id="designs" class="wrap tight" aria-labelledby="designs-h">
+    <div class="designs">
+      <div>
+        <p class="kicker" data-i18n="c_kicker"></p>
+        <h2 class="big" id="designs-h" data-i18n="c_h"></h2>
+        <p class="lead" data-i18n="c_lead"></p>
+        <p class="ctl-label" id="lbl-design" data-i18n="c_lbl_design"></p>
+        <div class="swatches" id="swatches" role="radiogroup" aria-labelledby="lbl-design"></div>
+        <p class="ctl-label" id="lbl-side" data-i18n="c_lbl_side"></p>
+        <div class="seg" id="sideSeg" role="radiogroup" aria-labelledby="lbl-side">
+          <button type="button" role="radio" aria-checked="true" data-side="0" data-i18n="side_front"></button>
+          <button type="button" role="radio" aria-checked="false" data-side="1" data-i18n="side_back"></button>
+        </div>
+        <p class="cname" id="cname" aria-live="polite"></p>
+      </div>
+      <div class="view" id="designView">
+        <svg class="fb" viewBox="0 0 120 172" aria-hidden="true"><use href="#cardshape"/></svg>
+        <span class="hint" data-i18n="hint"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="specs" class="wrap tight" aria-labelledby="specs-h">
+    <p class="kicker" data-i18n="sp_kicker"></p>
+    <h2 class="big" id="specs-h" data-i18n="sp_h"></h2>
+    <dl class="specs">
+      <div class="spec"><dt data-i18n="r1_k"></dt><dd data-i18n="r1_v"></dd></div>
+      <div class="spec"><dt data-i18n="r2_k"></dt><dd data-i18n="r2_v"></dd></div>
+      <div class="spec"><dt data-i18n="r3_k"></dt><dd data-i18n="r3_v"></dd></div>
+      <div class="spec"><dt data-i18n="r4_k"></dt><dd data-i18n="r4_v"></dd></div>
+      <div class="spec"><dt data-i18n="r5_k"></dt><dd data-i18n="r5_v"></dd></div>
+      <div class="spec"><dt data-i18n="r6_k"></dt><dd data-i18n="r6_v"></dd></div>
+      <div class="spec"><dt data-i18n="r7_k"></dt><dd data-i18n="r7_v"></dd></div>
+      <div class="spec"><dt data-i18n="r8_k"></dt><dd data-i18n="r8_v"></dd></div>
+    </dl>
+  </section>
+
+  <section class="wrap cta tight" aria-labelledby="cta-h">
+    <div class="view" id="ctaView">
+      <svg class="fb" viewBox="0 0 120 172" aria-hidden="true"><use href="#cardshape"/></svg>
+    </div>
+    <h2 class="big" id="cta-h" data-i18n="cta_h"></h2>
+    <a class="btn" href="#" id="ctaBtn" data-i18n="cta_btn"></a>
+    <p class="note" data-i18n="cta_note"></p>
+  </section>
+</main>
+
+<footer data-i18n="footer"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+const doc = document.documentElement;
+const $ = (s, r) => (r || document).querySelector(s);
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TAN = Math.tan(16 * Math.PI / 180);
+const fitDist = (aspect) => Math.max(9, 4.7 / aspect / (2 * TAN));
+const CW = 2.14, CH = 3.4;                        // card size in scene units (ISO ID-1 is 85.6 x 54 mm; shown upright)
+
+/* ------------------------------------------------------------------ */
+/*  Translations (RU / KZ)                                             */
+/* ------------------------------------------------------------------ */
+const ph = (s) => '<span class="ph">' + s + '</span>';
+const T = {
+  ru: {
+    title:'Freedom Bank — карта в 3D',
+    aria_lang:'Язык', aria_theme:'Переключить тему', aria_journey:'Карта Freedom Bank',
+    nav_details:'Возможности', nav_designs:'Дизайны', nav_specs:'Характеристики', nav_cta:'Выбрать дизайн',
+    hero_p:'Карта Freedom Bank в четырёх дизайнах. Рассмотрите её со всех сторон и выберите свою.',
+    scroll:'Листайте, чтобы рассмотреть',
+    s1_tag:'Дизайн', s1_h:'Карта, которую приятно достать',
+    s1_p:'Четыре образа: от глубокого изумруда до ночной темноты. Один банк, ваш стиль.',
+    s2_tag:'Чип', s2_h:'Платите в магазине и онлайн',
+    s2_p:'Чип и данные карты — всё, что нужно для оплаты. Бесконтактная оплата: ' + ph('[уточнить]'),
+    s3_tag:'Оборот', s3_h:'Безопасность на обороте',
+    s3_p:'На обороте — данные для подтверждения операций. О защите: ' + ph('[уточнить: технологии безопасности]'),
+    d_kicker:'Что внутри', d_h:'Банк, который помещается в карман',
+    f1_h:'Четыре дизайна', f1_p:'Выбирайте под настроение: изумруд, ночь, аква или пиксель.',
+    f2_h:'Оплата покупок', f2_p:'Покупки в магазинах и в интернете. Платёжная система: ' + ph('[уточнить]'),
+    f3_h:'Кэшбэк и бонусы', f3_p:'Условия программы: ' + ph('[уточнить: процент и категории]'),
+    f4_h:'Управление в приложении', f4_p:'Управляйте картой в приложении Freedom Bank. Возможности: ' + ph('[уточнить]'),
+    c_kicker:'Дизайн', c_h:'Соберите свою карту',
+    c_lead:'Выберите дизайн и сторону — карта изменится сразу. Потяните её в сторону, чтобы повернуть.',
+    c_lbl_design:'Дизайн', c_lbl_side:'Сторона', side_front:'Лицевая', side_back:'Оборотная', hint:'Потяните, чтобы повернуть',
+    designs:['Изумруд','Ночь','Аква','Пиксель'], sideName:['лицевая сторона','оборотная сторона'],
+    sp_kicker:'Характеристики', sp_h:'Коротко о карте',
+    r1_k:'Продукт', r1_v:'Банковская карта Freedom Bank',
+    r2_k:'Формат', r2_v:'Вертикальный, 85,6 × 54 мм',
+    r3_k:'Платёжная система', r3_v:ph('[уточнить]'),
+    r4_k:'Валюта', r4_v:ph('[уточнить]'),
+    r5_k:'Обслуживание', r5_v:ph('[уточнить: стоимость]'),
+    r6_k:'Кэшбэк', r6_v:ph('[уточнить]'),
+    r7_k:'Дизайны в демо', r7_v:'Изумруд, Ночь, Аква, Пиксель',
+    r8_k:'Срок выпуска', r8_v:ph('[уточнить]'),
+    cta_h:'Ваша карта ждёт', cta_btn:'Оформить карту',
+    cta_note:'Ссылка на оформление: ' + ph('[уточнить: URL]'),
+    footer:'Неофициальная концепция-демо. Freedom Bank — товарный знак его правообладателя; страница с ним не связана. Дизайны карт — оригинальные иллюстрации для демо, логотип-заглушка заменяется официальным. Условия продуктов: ' + ph('[уточнить]') + '.'
+  },
+  kz: {
+    title:'Freedom Bank — 3D карта',
+    aria_lang:'Тіл', aria_theme:'Тақырыпты ауыстыру', aria_journey:'Freedom Bank картасы',
+    nav_details:'Мүмкіндіктер', nav_designs:'Дизайндар', nav_specs:'Сипаттамалар', nav_cta:'Дизайнды таңдау',
+    hero_p:'Freedom Bank картасы төрт дизайнда. Оны барлық жағынан қарап шығып, өзіңізге ұнағанын таңдаңыз.',
+    scroll:'Қарау үшін төмен айналдырыңыз',
+    s1_tag:'Дизайн', s1_h:'Қолыңызға алғыңыз келетін карта',
+    s1_p:'Төрт бейне: терең зүмірет түстен түнгі қараңғылыққа дейін. Бір банк, сіздің стиліңіз.',
+    s2_tag:'Чип', s2_h:'Дүкенде де, онлайн да төлеңіз',
+    s2_p:'Төлем үшін қажеттінің бәрі — чип пен карта деректері. Контактісіз төлем: ' + ph('[нақтылау керек]'),
+    s3_tag:'Артқы жағы', s3_h:'Артқы жағындағы қауіпсіздік',
+    s3_p:'Артқы бетте операцияларды растауға қажетті деректер бар. Қорғаныс туралы: ' + ph('[нақтылау керек: қауіпсіздік технологиялары]'),
+    d_kicker:'Ішінде не бар', d_h:'Қалтаңызға сыятын банк',
+    f1_h:'Төрт дизайн', f1_p:'Көңіл-күйіңізге қарай таңдаңыз: зүмірет, түн, аква немесе пиксель.',
+    f2_h:'Сатып алуға төлеу', f2_p:'Дүкендегі және интернеттегі сатып алулар. Төлем жүйесі: ' + ph('[нақтылау керек]'),
+    f3_h:'Кэшбэк және бонустар', f3_p:'Бағдарлама шарттары: ' + ph('[нақтылау керек: пайыз және санаттар]'),
+    f4_h:'Қолданбада басқару', f4_p:'Картаны Freedom Bank қолданбасында басқарыңыз. Мүмкіндіктер: ' + ph('[нақтылау керек]'),
+    c_kicker:'Дизайн', c_h:'Өз картаңызды жинаңыз',
+    c_lead:'Дизайн мен жағын таңдаңыз — карта бірден өзгереді. Бұру үшін жағына қарай сүйреңіз.',
+    c_lbl_design:'Дизайн', c_lbl_side:'Жағы', side_front:'Алдыңғы', side_back:'Артқы', hint:'Бұру үшін сүйреңіз',
+    designs:['Зүмірет','Түн','Аква','Пиксель'], sideName:['алдыңғы жағы','артқы жағы'],
+    sp_kicker:'Сипаттамалар', sp_h:'Карта туралы қысқаша',
+    r1_k:'Өнім', r1_v:'Freedom Bank банк картасы',
+    r2_k:'Пішімі', r2_v:'Тік, 85,6 × 54 мм',
+    r3_k:'Төлем жүйесі', r3_v:ph('[нақтылау керек]'),
+    r4_k:'Валюта', r4_v:ph('[нақтылау керек]'),
+    r5_k:'Қызмет көрсету', r5_v:ph('[нақтылау керек: құны]'),
+    r6_k:'Кэшбэк', r6_v:ph('[нақтылау керек]'),
+    r7_k:'Демодағы дизайндар', r7_v:'Зүмірет, Түн, Аква, Пиксель',
+    r8_k:'Шығару мерзімі', r8_v:ph('[нақтылау керек]'),
+    cta_h:'Картаңыз күтіп тұр', cta_btn:'Картаны рәсімдеу',
+    cta_note:'Рәсімдеу сілтемесі: ' + ph('[нақтылау керек: URL]'),
+    footer:'Бейресми демо-тұжырымдама. Freedom Bank — құқық иесінің тауар белгісі; бұл бет онымен байланысты емес. Карта дизайндары — демо үшін жасалған түпнұсқа иллюстрациялар, логотип-толтырғыш ресми логотипке ауыстырылады. Өнім шарттары: ' + ph('[нақтылау керек]') + '.'
+  }
+};
+const load = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const save = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+
+const DESIGNS = [
+  { id:'emerald', thumb:'radial-gradient(circle at 35% 28%, #7dffa8 0, #0d7a3a 52%, #0a3d1f 100%)', tee:'#1fbf55' },
+  { id:'night',   thumb:'radial-gradient(circle at 62% 42%, #1f4a30 0, #030805 62%)',              tee:'#12261a' },
+  { id:'aqua',    thumb:'linear-gradient(140deg, #19c2b0 0%, #0b6a6a 55%, #063a3f 100%)',           tee:'#12b5a6' },
+  { id:'pixel',   thumb:'radial-gradient(circle at 72% 72%, #3ddc6e 0 13%, transparent 14%), linear-gradient(140deg, #0f3157, #071322)', tee:'#0d2a4a' }
+];
+
+let lang = 'ru';
+let theme = doc.getAttribute('data-theme') || 'dark';
+let sel = 0;                                       // selected design
+let gl = null;
+
+const stage = $('#stage'), designView = $('#designView'), ctaView = $('#ctaView'), canvas = $('#gl');
+const views = [
+  { el: stage,      kind: 'journey' },
+  { el: designView, kind: 'design'  },
+  { el: ctaView,    kind: 'cta'     }
+];
+
+const S = { x:0, y:0, s:1, rx:0, ry:0, rz:0, fan:1 };   // scroll-driven pose
+const flip = { v:0, goal:0 };                            // front / back toggle
+const ptr = { x:0, y:0, sx:0, sy:0 };
+const drag = { ry:0, target:0 };
+
+window.addEventListener('pointermove', (e) => {
+  ptr.x = (e.clientX / window.innerWidth) * 2 - 1;
+  ptr.y = (e.clientY / window.innerHeight) * 2 - 1;
+}, { passive:true });
+
+/* ------------------------------------------------------------------ */
+/*  UI: language, theme, design + side controls                        */
+/* ------------------------------------------------------------------ */
+function updateName(){ $('#cname').textContent = T[lang].designs[sel] + ', ' + T[lang].sideName[flip.goal]; }
+
+function applyLang(l){
+  lang = l;
+  doc.lang = l === 'kz' ? 'kk' : 'ru';
+  document.title = T[l].title;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { const v = T[l][el.dataset.i18n]; if (v != null) el.innerHTML = v; });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => { const v = T[l][el.dataset.i18nAria]; if (v != null) el.setAttribute('aria-label', v); });
+  document.querySelectorAll('.lang button').forEach((b) => b.setAttribute('aria-pressed', b.dataset.lang === l ? 'true' : 'false'));
+  document.querySelectorAll('.sw').forEach((b, i) => { b.setAttribute('aria-label', T[l].designs[i]); b.title = T[l].designs[i]; });
+  updateName();
+  save('fb-lang', l);
+}
+function applyTheme(t){
+  theme = t;
+  doc.setAttribute('data-theme', t);
+  save('fb-theme', t);
+  if (gl) gl.setTheme(t);
+}
+function buildUI(){
+  const box = $('#swatches');
+  DESIGNS.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sw'; b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', i === sel ? 'true' : 'false');
+    b.style.background = d.thumb;
+    b.addEventListener('click', () => selectDesign(i));
+    box.appendChild(b);
+  });
+  document.querySelectorAll('#sideSeg button').forEach((b) => b.addEventListener('click', () => setSide(Number(b.dataset.side))));
+  document.querySelectorAll('.lang button').forEach((b) => b.addEventListener('click', () => applyLang(b.dataset.lang)));
+  $('#themeBtn').addEventListener('click', () => applyTheme(theme === 'dark' ? 'light' : 'dark'));
+  doc.style.setProperty('--tee', DESIGNS[sel].tee);
+}
+function selectDesign(i){
+  if (i === sel) return;
+  const old = sel; sel = i;
+  document.querySelectorAll('.sw').forEach((b, k) => b.setAttribute('aria-checked', k === i ? 'true' : 'false'));
+  doc.style.setProperty('--tee', DESIGNS[i].tee);
+  updateName();
+  if (gl) gl.swap(old, i);
+}
+function setSide(g){
+  flip.goal = g;
+  document.querySelectorAll('#sideSeg button').forEach((b) => b.setAttribute('aria-checked', Number(b.dataset.side) === g ? 'true' : 'false'));
+  updateName();
+  if (window.gsap && !reduced) gsap.to(flip, { v:g, duration:1.0, ease:'power2.inOut', overwrite:true });
+  else flip.v = g;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Card artwork (drawn on canvas, original designs)                   */
+/* ------------------------------------------------------------------ */
+const TW = 800, TH = Math.round(TW * CH / CW);
+function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rrect(g, x, y, w, h, r){
+  g.beginPath(); g.moveTo(x + r, y); g.lineTo(x + w - r, y); g.quadraticCurveTo(x + w, y, x + w, y + r);
+  g.lineTo(x + w, y + h - r); g.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
+  g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath();
+}
+const FONT_H = 'Unbounded, Manrope, Arial, sans-serif', FONT_B = 'Manrope, Arial, sans-serif';
+
+function wordmark(g, main, accent){
+  const x = TW * 0.085, y = TH * 0.05, s = TW * 0.125;
+  g.fillStyle = accent; rrect(g, x, y, s, s, s * 0.26); g.fill();          // placeholder mark, replace with the official logo
+  g.fillStyle = '#03140a'; g.font = '800 ' + (s * 0.74) + 'px ' + FONT_H; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('F', x + s / 2, y + s / 2 + s * 0.04);
+  g.textAlign = 'left'; g.fillStyle = main;
+  g.font = '800 ' + (TW * 0.072) + 'px ' + FONT_H; g.fillText('FREEDOM', x + s * 1.25, y + s * 0.34);
+  g.font = '700 ' + (TW * 0.046) + 'px ' + FONT_B; g.globalAlpha = 0.85; g.fillText('BANK', x + s * 1.28, y + s * 0.82); g.globalAlpha = 1;
+}
+function chip(g){
+  const w = TW * 0.23, h = TW * 0.28, x = TW * 0.5 - w / 2, y = TH * 0.80 - h / 2;
+  const gr = g.createLinearGradient(x, y, x + w, y + h);
+  gr.addColorStop(0, '#f6f8f7'); gr.addColorStop(0.5, '#b9c2be'); gr.addColorStop(1, '#eef1ef');
+  g.fillStyle = gr; rrect(g, x, y, w, h, w * 0.14); g.fill();
+  g.strokeStyle = 'rgba(0,0,0,.4)'; g.lineWidth = 3; g.stroke();
+  g.strokeStyle = 'rgba(0,0,0,.32)'; g.lineWidth = 2.5;
+  [0.33, 0.66].forEach((k) => { g.beginPath(); g.moveTo(x, y + h * k); g.lineTo(x + w, y + h * k); g.stroke(); });
+  [0.33, 0.66].forEach((k) => { g.beginPath(); g.moveTo(x + w * k, y + h * 0.33); g.lineTo(x + w * k, y + h * 0.66); g.stroke(); });
+  g.beginPath(); g.moveTo(x + w * 0.5, y); g.lineTo(x + w * 0.5, y + h * 0.33); g.moveTo(x + w * 0.5, y + h * 0.66); g.lineTo(x + w * 0.5, y + h); g.stroke();
+}
+const ART = {
+  emerald(g){
+    const b = g.createLinearGradient(0, 0, TW, TH); b.addColorStop(0, '#0a3d1f'); b.addColorStop(0.55, '#0d7a3a'); b.addColorStop(1, '#063018');
+    g.fillStyle = b; g.fillRect(0, 0, TW, TH);
+    const r = g.createRadialGradient(TW * 0.7, TH * 0.3, 0, TW * 0.7, TH * 0.3, TW * 0.9);
+    r.addColorStop(0, 'rgba(125,255,168,.55)'); r.addColorStop(1, 'rgba(125,255,168,0)'); g.fillStyle = r; g.fillRect(0, 0, TW, TH);
+    g.strokeStyle = 'rgba(210,255,225,.2)'; g.lineWidth = 3;
+    for (let i = 1; i < 16; i++) { g.beginPath(); g.arc(TW * 0.5, TH * 0.42, i * TW * 0.062, 0, Math.PI * 2); g.stroke(); }
+    const f = g.createRadialGradient(TW * 0.5, TH * 0.42, 0, TW * 0.5, TH * 0.42, TW * 0.32);
+    f.addColorStop(0, 'rgba(190,255,215,.75)'); f.addColorStop(1, 'rgba(190,255,215,0)'); g.fillStyle = f; g.beginPath(); g.arc(TW * 0.5, TH * 0.42, TW * 0.32, 0, Math.PI * 2); g.fill();
+    const R = rng(7); g.fillStyle = 'rgba(220,255,232,.55)';
+    for (let i = 0; i < 46; i++) { g.beginPath(); g.arc(R() * TW, R() * TH, 2 + R() * 6, 0, Math.PI * 2); g.fill(); }
+  },
+  night(g){
+    g.fillStyle = '#020403'; g.fillRect(0, 0, TW, TH);
+    const R = rng(21);
+    for (let i = 0; i < 190; i++) { g.fillStyle = 'rgba(255,255,255,' + (0.25 + R() * 0.7) + ')'; const s = R() < 0.1 ? 3.5 : 1.8; g.fillRect(R() * TW, R() * TH, s, s); }
+    g.strokeStyle = 'rgba(61,220,110,.5)'; g.lineWidth = 3;
+    g.beginPath(); g.arc(TW * 0.72, TH * 0.6, TW * 0.5, 0, Math.PI * 2); g.stroke();
+    g.save(); g.translate(TW * 0.72, TH * 0.6); g.rotate(-0.5); g.scale(1, 0.26);
+    g.strokeStyle = 'rgba(61,220,110,.4)'; g.beginPath(); g.arc(0, 0, TW * 0.78, 0, Math.PI * 2); g.stroke(); g.restore();
+    const pts = [[0.2, 0.3], [0.34, 0.22], [0.5, 0.3], [0.62, 0.18], [0.78, 0.26]];
+    g.strokeStyle = 'rgba(61,220,110,.55)'; g.lineWidth = 2; g.beginPath();
+    pts.forEach((p, i) => { if (i) g.lineTo(p[0] * TW, p[1] * TH); else g.moveTo(p[0] * TW, p[1] * TH); }); g.stroke();
+    g.fillStyle = '#7dffa8'; pts.forEach((p) => { g.beginPath(); g.arc(p[0] * TW, p[1] * TH, 6, 0, Math.PI * 2); g.fill(); });
+    const gl2 = g.createRadialGradient(TW * 0.5, TH * 0.66, 0, TW * 0.5, TH * 0.66, TW * 0.7);
+    gl2.addColorStop(0, 'rgba(30,140,70,.28)'); gl2.addColorStop(1, 'rgba(30,140,70,0)'); g.fillStyle = gl2; g.fillRect(0, 0, TW, TH);
+  },
+  aqua(g){
+    const b = g.createLinearGradient(0, 0, TW * 0.6, TH); b.addColorStop(0, '#063a3f'); b.addColorStop(0.6, '#0e8b86'); b.addColorStop(1, '#19c2b0');
+    g.fillStyle = b; g.fillRect(0, 0, TW, TH);
+    g.lineWidth = 3;
+    for (let i = 0; i < 22; i++) {
+      g.strokeStyle = 'rgba(200,255,245,' + (0.08 + (i % 4) * 0.05) + ')'; g.beginPath();
+      for (let x = 0; x <= TW; x += 8) { const y = TH * (0.16 + i * 0.038) + Math.sin(x / TW * Math.PI * 3 + i * 0.5) * TW * 0.05; if (x) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.stroke();
+    }
+    const R = rng(33); g.strokeStyle = 'rgba(220,255,250,.45)'; g.lineWidth = 2.5;
+    for (let i = 0; i < 26; i++) { g.beginPath(); g.arc(R() * TW, R() * TH, 4 + R() * 16, 0, Math.PI * 2); g.stroke(); }
+    const h = g.createRadialGradient(TW * 0.3, TH * 0.6, 0, TW * 0.3, TH * 0.6, TW * 0.8);
+    h.addColorStop(0, 'rgba(120,255,230,.28)'); h.addColorStop(1, 'rgba(120,255,230,0)'); g.fillStyle = h; g.fillRect(0, 0, TW, TH);
+  },
+  pixel(g){
+    g.fillStyle = '#071322'; g.fillRect(0, 0, TW, TH);
+    const R = rng(55), c = TW * 0.05, cols = Math.ceil(TW / c), rows = Math.ceil(TH / c);
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const d = Math.abs((i / cols) * 1.15 - (1 - j / rows) - 0.05);           // diagonal band
+      const p = Math.max(0, 0.75 - d * 2.2) * (0.3 + R() * 0.9);
+      if (R() < 0.18) { g.fillStyle = 'rgba(30,70,120,' + (0.25 + R() * 0.4) + ')'; g.fillRect(i * c, j * c, c - 2, c - 2); }
+      if (p > 0.16) { g.fillStyle = R() < 0.35 ? 'rgba(125,255,168,' + Math.min(1, p + 0.2) + ')' : 'rgba(61,220,110,' + Math.min(1, p + 0.15) + ')'; g.fillRect(i * c, j * c, c - 2, c - 2); }
+    }
+  }
+};
+const ART_ORDER = ['emerald', 'night', 'aqua', 'pixel'];
+const BACK_BASE = ['#062915', '#020403', '#053b3d', '#06101c'];
+const WORD = ['#f1fff5', '#f1fff5', '#f1fff5', '#f1fff5'];
+
+function drawFront(g, i){ ART[ART_ORDER[i]](g); wordmark(g, WORD[i], '#3ddc6e'); chip(g); }
+function drawBack(g, i){
+  g.fillStyle = BACK_BASE[i]; g.fillRect(0, 0, TW, TH);
+  const R = rng(90 + i); for (let k = 0; k < 90; k++) { g.fillStyle = 'rgba(61,220,110,' + (R() * 0.1) + ')'; g.fillRect(R() * TW, R() * TH, 3, 3); }
+  g.fillStyle = '#050505'; g.fillRect(0, TH * 0.085, TW, TH * 0.085);                                    // magnetic stripe
+  g.fillStyle = '#f2f2ee'; rrect(g, TW * 0.09, TH * 0.28, TW * 0.62, TH * 0.062, 8); g.fill();            // signature panel
+  g.strokeStyle = 'rgba(0,0,0,.12)'; g.lineWidth = 2;
+  for (let x = TW * 0.1; x < TW * 0.7; x += 16) { g.beginPath(); g.moveTo(x, TH * 0.29); g.lineTo(x + 12, TH * 0.335); g.stroke(); }
+  const h = g.createLinearGradient(TW * 0.74, TH * 0.26, TW * 0.92, TH * 0.36);
+  h.addColorStop(0, '#7dffa8'); h.addColorStop(0.5, '#7fd7ff'); h.addColorStop(1, '#3ddc6e');
+  g.fillStyle = h; g.globalAlpha = 0.85; g.beginPath(); g.arc(TW * 0.83, TH * 0.31, TW * 0.075, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+  g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = 'rgba(241,255,245,.7)';
+  g.font = '800 ' + (TW * 0.062) + 'px ' + FONT_H; g.fillText('FREEDOM BANK', TW / 2, TH * 0.9);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Three.js scene                                                     */
+/* ------------------------------------------------------------------ */
+function noGL(){ doc.classList.add('no-webgl'); }
+
+function initGL(){
+  if (!window.THREE) return noGL();
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' });
+  } catch (e) { return noGL(); }
+  if (!renderer.getContext()) return noGL();
+
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  renderer.setClearColor(0x000000, 0);
+  renderer.autoClear = false;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+
+  /* synthetic studio environment: soft boxes + green strips for long highlights on the glossy plastic */
+  (function(){
+    const env = new THREE.Scene();
+    env.add(new THREE.Mesh(new THREE.BoxGeometry(26, 14, 26), new THREE.MeshBasicMaterial({ color:new THREE.Color(0.04, 0.09, 0.06), side:THREE.BackSide })));
+    const panel = (w, h, x, y, z, rx, ry, c) => {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color:c, side:THREE.DoubleSide }));
+      m.position.set(x, y, z); m.rotation.set(rx, ry, 0); env.add(m);
+    };
+    panel(12, 9, 0, 6.6, 0, Math.PI/2, 0, new THREE.Color(4.2, 4.5, 4.3));
+    panel(5, 9, -9, 1.5, 3, 0, Math.PI/2, new THREE.Color(6.0, 6.4, 6.1));
+    panel(4, 9, 9, 1, 2, 0, -Math.PI/2, new THREE.Color(0.9, 4.2, 1.9));
+    panel(12, 3, 0, 2, -9, 0, 0, new THREE.Color(2.6, 4.2, 3.2));
+    panel(10, 2, 0, -5, 6, -Math.PI/2.4, 0, new THREE.Color(0.5, 2.4, 1.1));
+    const pm = new THREE.PMREMGenerator(renderer);
+    scene.environment = pm.fromScene(env, 0.03).texture;
+    pm.dispose();
+  })();
+
+  const key = new THREE.DirectionalLight(0xffffff, 1.4); key.position.set(4, 5, 6); scene.add(key);
+  const fill = new THREE.DirectionalLight(0x7dffb0, 0.6); fill.position.set(-5, 1, 4); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xc8ffe0, 1.2); rim.position.set(-2, 4, -6); scene.add(rim);
+
+  /* card geometry: rounded-rect body (metal edge) + artwork planes on both faces */
+  function cardShape(w, h, r){
+    const s = new THREE.Shape(), x = -w / 2, y = -h / 2;
+    s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r);
+    s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r);
+    s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y);
+    return s;
+  }
+  const R_CARD = 0.17, DEPTH = 0.035, BEV = 0.012;
+  const bodyGeo = new THREE.ExtrudeGeometry(cardShape(CW, CH, R_CARD), {
+    depth:DEPTH, bevelEnabled:true, bevelThickness:BEV, bevelSize:BEV, bevelSegments:3, curveSegments:14
+  });
+  bodyGeo.translate(0, 0, -DEPTH / 2);
+  const ZF = DEPTH / 2 + BEV + 0.0012;
+  function faceGeo(mirror){
+    const g = new THREE.ShapeGeometry(cardShape(CW, CH, R_CARD), 14), p = g.attributes.position, uv = g.attributes.uv;
+    for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + CW / 2) / CW; uv.setXY(i, mirror ? 1 - u : u, (p.getY(i) + CH / 2) / CH); }
+    uv.needsUpdate = true; return g;
+  }
+  const frontGeo = faceGeo(false), backGeo = faceGeo(true);
+  const bodyMat = new THREE.MeshPhysicalMaterial({ color:0x0b1a12, roughness:0.32, metalness:0.75, clearcoat:0.6, clearcoatRoughness:0.1, envMapIntensity:1.1 });
+
+  const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  function tex(draw, i){
+    const c = document.createElement('canvas'); c.width = TW; c.height = TH;
+    draw(c.getContext('2d'), i);
+    const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; t.anisotropy = aniso;
+    return { t, c, draw, i };
+  }
+  const arts = [];
+  const cards = DESIGNS.map((d, i) => {
+    const f = tex(drawFront, i), b = tex(drawBack, i); arts.push(f, b);
+    const faceMat = (t) => new THREE.MeshPhysicalMaterial({ map:t.t, roughness:0.3, metalness:0.05, clearcoat:1, clearcoatRoughness:0.05, envMapIntensity:1.15 });
+    const group = new THREE.Group();
+    group.add(new THREE.Mesh(bodyGeo, bodyMat));
+    const front = new THREE.Mesh(frontGeo, faceMat(f)); front.position.z = ZF; group.add(front);
+    const back = new THREE.Mesh(backGeo, faceMat(b)); back.position.z = -ZF; back.rotation.y = Math.PI; group.add(back);
+    return { group, vis: i === sel ? 1 : 0, spin: 0 };
+  });
+  const rig = new THREE.Group();
+  rig.rotation.order = 'YXZ';
+  cards.forEach((c) => rig.add(c.group));
+  scene.add(rig);
+
+  // redraw once the display fonts are ready
+  const fonts = (document.fonts && document.fonts.load)
+    ? Promise.race([Promise.all([document.fonts.load('800 60px Unbounded'), document.fonts.load('700 30px Manrope')]), new Promise((r) => setTimeout(r, 2500))])
+    : Promise.resolve();
+  fonts.then(() => arts.forEach((a) => { a.draw(a.c.getContext('2d'), a.i); a.t.needsUpdate = true; }));
+
+  /* floor glow (additive on dark, soft green shadow on light) */
+  function glowTex(rgb){
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    gr.addColorStop(0, 'rgba(' + rgb + ',0.9)'); gr.addColorStop(0.45, 'rgba(' + rgb + ',0.3)'); gr.addColorStop(1, 'rgba(' + rgb + ',0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c);
+  }
+  const glowDark = new THREE.MeshBasicMaterial({ map:glowTex('40,220,110'), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.4 });
+  const glowLight = new THREE.MeshBasicMaterial({ map:glowTex('6,60,28'), transparent:true, depthWrite:false, opacity:0.32 });
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 0.9), glowDark);
+  scene.add(glow);
+  let glowBase = 0.4;
+  function setTheme(t){
+    glow.material = t === 'light' ? glowLight : glowDark;
+    glowBase = t === 'light' ? 0.32 : 0.42;
+    renderer.toneMappingExposure = t === 'light' ? 1.0 : 1.05;
+  }
+  setTheme(theme);
+
+  function swap(a, b){
+    const A = cards[a], B = cards[b];
+    if (window.gsap && !reduced) {
+      gsap.to(A, { vis:0, duration:0.4, ease:'power2.in', overwrite:true });
+      gsap.fromTo(B, { spin:-1.3 }, { spin:0, duration:0.9, ease:'power3.out', overwrite:'auto' });
+      gsap.to(B, { vis:1, duration:0.55, ease:'back.out(1.5)', overwrite:'auto' });
+    } else { A.vis = 0; B.vis = 1; }
+  }
+
+  /* sizing */
+  let cw = 1, ch = 1;
+  function resize(){
+    cw = canvas.clientWidth || window.innerWidth; ch = canvas.clientHeight || window.innerHeight;
+    const small = window.innerWidth < 800;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2));
+    renderer.setSize(cw, ch, false);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* poses */
+  const FAN = [0, 1, 2, 3].map((i) => { const c = i - 1.5; return { x:c * 1.3, y:-0.12 * c * c + 0.08, z:i * 0.07 - 0.1, rz:-c * 0.15, ry:-c * 0.12 }; });
+  const sstep = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  function pose(kind, t){
+    const k = reduced ? 0 : 1, px = ptr.sx * k, py = ptr.sy * k;
+    if (kind === 'journey') {
+      const d = k / (1 + (S.s - 1) * 1.2);
+      return { x:S.x, by:S.y, y:S.y + Math.sin(t * 1.1) * 0.05 * d, s:S.s, fan:S.fan,
+               rx:S.rx + (py * 0.09 + Math.sin(t * 0.7) * 0.02) * d,
+               ry:S.ry + (px * 0.20 + Math.sin(t * 0.5) * 0.10) * d, rz:S.rz };
+    }
+    if (kind === 'design') {
+      return { x:0, by:0, y:Math.sin(t * 1.1) * 0.05 * k, s:1, fan:0,
+               rx:py * 0.08 + Math.sin(t * 0.7) * 0.02 * k,
+               ry:drag.ry + flip.v * Math.PI + px * 0.15 + Math.sin(t * 0.6) * 0.16 * k, rz:0 };
+    }
+    return { x:0, by:0, y:Math.sin(t * 1.0 + 1) * 0.05 * k, s:0.95, fan:1,
+             rx:py * 0.06, ry:px * 0.2 + Math.sin(t * 0.5) * 0.22 * k, rz:0 };
+  }
+  function applyPose(p, kFan){
+    const sEff = p.s * (1 + p.fan * (kFan - 1));
+    rig.position.set(p.x, p.y, 0);
+    rig.scale.setScalar(sEff);
+    rig.rotation.set(p.rx, p.ry, p.rz);
+    const f = p.fan, fv = sstep(0.15, 0.85, f);
+    cards.forEach((c, i) => {
+      const F = FAN[i], v = c.vis + (1 - c.vis) * fv;
+      c.group.visible = v > 0.01;
+      c.group.scale.setScalar(Math.max(v, 0.0001));
+      c.group.position.set(F.x * f, F.y * f, F.z * f);
+      c.group.rotation.set(0, F.ry * f + c.spin, F.rz * f);
+    });
+    const lift = p.y - p.by;
+    glow.position.set(p.x, p.by - 1.98 * sEff, -0.3);
+    glow.scale.set(sEff * (1 + f * 0.9) * (1 - lift * 1.2), sEff, 1);
+    glow.material.opacity = glowBase * (1 - lift * 2) * Math.max(0, Math.min(1, 1 - (sEff - 1.3) / 0.6));
+  }
+
+  /* render loop: one canvas, one viewport per visible view */
+  let lastT = 0, shown = false;
+  function frame(now){
+    requestAnimationFrame(frame);
+    const t = now / 1000, dt = Math.min(t - lastT, 0.05); lastT = t;
+    const e = Math.min(1, dt * 4);
+    ptr.sx += (ptr.x - ptr.sx) * e; ptr.sy += (ptr.y - ptr.sy) * e;
+    drag.ry += (drag.target - drag.ry) * Math.min(1, dt * 8);
+
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, cw, ch);
+    renderer.clear();
+
+    views.forEach((v) => {
+      const r = v.el.getBoundingClientRect();
+      if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > ch || r.right < 0 || r.left > cw) return;
+      const aspect = r.width / r.height, d = fitDist(aspect);
+      const visW = 2 * d * TAN * aspect, kFan = Math.min(1, visW * 0.9 / 6.4);
+      camera.aspect = aspect; camera.position.set(0, 0.5, d); camera.lookAt(0, 0.05, 0);
+      camera.updateProjectionMatrix();
+      applyPose(pose(v.kind, t), kFan);
+      const x = r.left, y = ch - r.bottom;
+      renderer.setScissorTest(true);
+      renderer.setViewport(x, y, r.width, r.height);
+      renderer.setScissor(x, y, r.width, r.height);
+      renderer.render(scene, camera);
+    });
+    if (!shown) { shown = true; canvas.classList.add('ready'); }
+  }
+  requestAnimationFrame(frame);
+
+  return { swap, setTheme };
+}
+
+/* ------------------------------------------------------------------ */
+/*  Scroll story                                                       */
+/* ------------------------------------------------------------------ */
+function initScroll(){
+  if (!window.gsap || !window.ScrollTrigger) { doc.classList.add('no-gsap'); return; }
+  gsap.registerPlugin(ScrollTrigger);
+
+  const metrics = () => {
+    const w = stage.clientWidth, h = stage.clientHeight, asp = w / h;
+    const d = fitDist(asp), visH = 2 * d * TAN;
+    return { visW: visH * asp, visH };
+  };
+
+  function build(mobile){
+    gsap.set(S, { x:0, y:0, s:1, rx:0, ry:0, rz:0, fan:1 });
+    gsap.set('.step', { autoAlpha:0 });
+    gsap.set('.prog', { autoAlpha:0 });
+    gsap.set('.prog i', { scaleX:0 });
+
+    const up   = () => mobile ? metrics().visH * 0.2 : 0;
+    const side = () => { if (mobile) return 0; const m = metrics(); return Math.max(0, Math.min(m.visW * 0.22, m.visW / 2 - 1.5)); };
+    const S2 = mobile ? 2.0 : 2.5, S3 = mobile ? 1.6 : 1.9;
+    const F2 = { x:0, y:-1.02 }, F3 = { x:0, y:0.9 };      // focus points (chip, stripe + signature panel), in card space
+
+    const tl = gsap.timeline({
+      defaults: { ease:'power2.inOut' },
+      scrollTrigger: { trigger:'#journey', start:'top top', end:'bottom bottom', scrub:reduced ? true : 0.7, invalidateOnRefresh:true }
+    });
+
+    // hero → story: the fan gathers into one card
+    tl.to(S, { x:() => side(), y:() => up(), ry:-0.5, rz:-0.06, duration:1 }, 0)
+      .to(S, { fan:0, duration:0.9 }, 0)
+      .to('.hero-copy, .scroll-hint', { autoAlpha:0, y:-30, duration:0.4, ease:'power1.in' }, 0)
+      .to('.hero-title', { autoAlpha:0, duration:0.5, ease:'none' }, 0.35)
+    // 1 · the card turns
+      .to(S, { ry:0.5, rz:0, duration:1, ease:'none' }, 1)
+    // 2 · chip close-up
+      .to(S, { x:() => side() * 1.1 - F2.x * S2, y:() => up() - F2.y * S2, s:S2, ry:0.1, rx:0.08, duration:1 }, 2)
+    // 3 · flip to the back
+      .to(S, { x:() => side() * 1.1 - F3.x * S3, y:() => up() - F3.y * S3, s:S3, ry:Math.PI - 0.25, rx:0.04, duration:1 }, 3);
+
+    document.querySelectorAll('.step').forEach((el, i) => {
+      const t0 = 1 + i;
+      tl.fromTo(el, { autoAlpha:0, y:36 }, { autoAlpha:1, y:0, duration:0.25, ease:'power2.out' }, t0 + 0.1);
+      if (i < 2) tl.to(el, { autoAlpha:0, y:-36, duration:0.2, ease:'power2.in' }, t0 + 0.8);
+    });
+    tl.to('.prog', { autoAlpha:1, duration:0.15, ease:'none' }, 1)
+      .to('.prog i', { scaleX:1, duration:3, ease:'none' }, 1)
+      .to('.b1', { x:() => window.innerWidth * 0.08, y:() => window.innerHeight * 0.42, duration:4, ease:'none' }, 0)
+      .to('.b2', { x:() => -window.innerWidth * 0.1, y:() => -window.innerHeight * 0.38, duration:4, ease:'none' }, 0);
+  }
+
+  const mm = gsap.matchMedia();
+  mm.add('(min-width: 801px)', () => build(false));
+  mm.add('(max-width: 800px)', () => build(true));
+}
+
+function initDrag(){
+  let down = false, lastX = 0;
+  designView.addEventListener('pointerdown', (e) => {
+    down = true; lastX = e.clientX; designView.classList.add('drag');
+    try { designView.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  designView.addEventListener('pointermove', (e) => {
+    if (!down) return;
+    drag.target += (e.clientX - lastX) * 0.012; lastX = e.clientX;
+  });
+  const end = () => { down = false; designView.classList.remove('drag'); };
+  designView.addEventListener('pointerup', end);
+  designView.addEventListener('pointercancel', end);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Boot                                                               */
+/* ------------------------------------------------------------------ */
+buildUI();
+const savedLang = load('fb-lang');
+applyLang(savedLang === 'ru' || savedLang === 'kz' ? savedLang : ((navigator.language || '').toLowerCase().indexOf('kk') === 0 ? 'kz' : 'ru'));
+initScroll();
+initDrag();
+$('#ctaBtn').addEventListener('click', (e) => e.preventDefault());   // TODO: подставить ссылку на оформление карты
+
+let booted = false;
+const boot = () => { if (booted) return; booted = true; setTimeout(() => { gl = initGL() || null; }, 30); };
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { boot(); io.disconnect(); } });
+  io.observe($('#journey'));
+} else boot();
+
+})();
+</script>
+</body>
+</html>

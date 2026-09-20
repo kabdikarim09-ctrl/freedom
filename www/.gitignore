@@ -1,0 +1,5 @@
+node_modules/
+.venv/
+.idea/
+ios/App/build/
+ios/App/Pods/
