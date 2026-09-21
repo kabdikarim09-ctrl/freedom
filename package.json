@@ -1,4 +1,11 @@
 {
+  "name": "welcomescreen",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'No build script needed'",
+    "cap": "cap"
+  },
   "dependencies": {
     "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^8.5.2",

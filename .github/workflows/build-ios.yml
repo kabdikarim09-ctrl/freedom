@@ -2,7 +2,9 @@ name: Build iOS App
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -15,23 +17,20 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 20
 
       - name: Install dependencies
         run: |
           npm install
-          npx cap sync ios
-          if [ -f "ios/App/Podfile" ]; then
-            cd ios/App && pod install
-          fi
+          chmod +x node_modules/.bin/*
 
       - name: Build iOS Workspace
         run: |
           cd ios/App
           if [ -d "App.xcworkspace" ]; then
-            xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO build
+            xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release
           else
-            xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Release CODE_SIGNING_ALLOWED=NO build
+            xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Release
           fi
 
       - name: Upload Build Artifact
