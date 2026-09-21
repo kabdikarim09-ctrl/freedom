@@ -30,30 +30,13 @@ jobs:
       - name: Sync Capacitor iOS
         run: npx cap sync ios
 
-      - name: Build iOS Workspace
+      - name: Zip iOS Simulator App
         run: |
-          cd ios/App
-          if [ -d "App.xcworkspace" ]; then
-            xcodebuild -workspace App.xcworkspace \
-                       -scheme App \
-                       -sdk iphonesimulator \
-                       -destination "generic/platform=iOS Simulator" \
-                       -configuration Release \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGN_IDENTITY=""
-          else
-            xcodebuild -project App.xcodeproj \
-                       -scheme App \
-                       -sdk iphonesimulator \
-                       -destination "generic/platform=iOS Simulator" \
-                       -configuration Release \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGN_IDENTITY=""
-          fi
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-            name: ios-app
-            path: ios/App/build/Release-iphonesimulator/
+            cd ios/App/build/Release-iphonesimulator
+            zip -r App.app.zip App.app
+
+            - name: Upload Build Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: ios-simulator-app
+                path: ios/App/build/Release-iphonesimulator/App.app.zip
