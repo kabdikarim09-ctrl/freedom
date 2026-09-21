@@ -28,9 +28,21 @@ jobs:
         run: |
           cd ios/App
           if [ -d "App.xcworkspace" ]; then
-            xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Release
+            xcodebuild -workspace App.xcworkspace \
+                       -scheme App \
+                       -sdk iphoneos \
+                       -configuration Release \
+                       CODE_SIGNING_ALLOWED=NO \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGN_IDENTITY=""
           else
-            xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Release
+            xcodebuild -project App.xcodeproj \
+                       -scheme App \
+                       -sdk iphoneos \
+                       -configuration Release \
+                       CODE_SIGNING_ALLOWED=NO \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGN_IDENTITY=""
           fi
 
       - name: Upload Build Artifact
