@@ -30,7 +30,8 @@ jobs:
           if [ -d "App.xcworkspace" ]; then
             xcodebuild -workspace App.xcworkspace \
                        -scheme App \
-                       -sdk iphoneos \
+                       -sdk iphonesimulator \
+                       -destination "generic/platform=iOS Simulator" \
                        -configuration Release \
                        CODE_SIGNING_ALLOWED=NO \
                        CODE_SIGNING_REQUIRED=NO \
@@ -38,13 +39,13 @@ jobs:
           else
             xcodebuild -project App.xcodeproj \
                        -scheme App \
-                       -sdk iphoneos \
+                       -sdk iphonesimulator \
+                       -destination "generic/platform=iOS Simulator" \
                        -configuration Release \
                        CODE_SIGNING_ALLOWED=NO \
                        CODE_SIGNING_REQUIRED=NO \
                        CODE_SIGN_IDENTITY=""
           fi
-
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
