@@ -55,5 +55,5 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build
-          path: ios/App/build/Release-iphoneos/
+            name: ios-app
+            path: ios/App/build/Release-iphonesimulator/
