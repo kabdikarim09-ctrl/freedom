@@ -24,6 +24,12 @@ jobs:
           npm install
           chmod +x node_modules/.bin/*
 
+      - name: Build Web App
+        run: npm run build
+
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
       - name: Build iOS Workspace
         run: |
           cd ios/App
